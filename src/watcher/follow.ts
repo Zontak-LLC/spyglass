@@ -1,6 +1,7 @@
 import { closeSync, constants, fstatSync, openSync, readSync, type Stats, statSync } from "node:fs";
 import { type NightEvent, parseAgentMeta, parseLine } from "../parser/index.js";
 import { type LogFile, logFiles } from "./files.js";
+import { isQuiet, pathsToForget } from "./forget.js";
 import { advance, committed, START, startAt, type TailState } from "./tail.js";
 
 /** Where an event came from: a key that is the same every time the same line is read, so a store can tell a repeat. */
@@ -31,6 +32,10 @@ export type WatchOptions = {
   onError?: (error: unknown) => void;
   /** At most this many bytes of one file per look: a huge log is caught up over several looks, never read whole. */
   chunkBytes?: number;
+  /** A followed file unchanged for this long is forgotten (and not followed again until it changes); unset: never. */
+  forgetAfterMs?: number;
+  /** The watcher dropped what it knew about `path` (gone from the folder, or quiet past `forgetAfterMs`). */
+  onForget?: (path: string) => void;
 };
 
 type Followed = { tail: TailState; ino: number; epoch: number };
@@ -86,6 +91,8 @@ export function watchLogs(opts: WatchOptions): () => void {
     onLines,
     onPlace,
     chunkBytes = 8_000_000,
+    forgetAfterMs,
+    onForget,
   } = opts;
   const files = new Map<string, Followed>();
   /** meta file -> the size last read (it is written once, then left alone). */
@@ -101,11 +108,21 @@ export function watchLogs(opts: WatchOptions): () => void {
     said.add(message);
     onError?.(new Error(message));
   }
+  /** Forgets the problems said about one file, so a new one is said again. */
+  function unsay(path: string): void {
+    for (const message of said) if (message.startsWith(`${path}: `)) said.delete(message);
+  }
 
-  function firstTail(size: number, mtimeMs: number): TailState {
-    if (!first) return START; // a file that appears later is brand new: read it all
+  /** Listed files left quiet at the last look (forgotten, or quiet since before the start); rebuilt on every look. */
+  let waiting = new Set<string>();
+  /** A whole small file, or the last `tailBytes` of a big one. */
+  const recentEnd = (size: number) => (size > tailBytes ? startAt(size - tailBytes) : START);
+
+  function firstTail(path: string, size: number, mtimeMs: number): TailState {
+    // A quiet log that grew again has lost its history mark: only its end is "now". A brand-new file is read whole.
+    if (!first) return waiting.has(path) ? recentEnd(size) : START;
     if (Date.now() - mtimeMs > recentMs) return startAt(size); // quiet: only new lines from now on
-    return size > tailBytes ? startAt(size - tailBytes) : START;
+    return recentEnd(size);
   }
 
   /** One failing listener must not lose the rest of the lines. */
@@ -141,21 +158,19 @@ export function watchLogs(opts: WatchOptions): () => void {
   }
 
   /** Where to read from and which epoch the file is in: carried on, read from the top, or a first look. */
-  function placeFor(known: Followed | null, info: Stats): { tail: TailState; epoch: number } {
+  function placeFor(path: string, known: Followed | null, info: Stats): { tail: TailState; epoch: number } {
     // A different file under the same name (replaced, not appended to), or one that shrank: read it from the top.
     const replaced = known && (known.ino !== info.ino || info.size < known.tail.offset);
     if (known && !replaced) return { tail: known.tail, epoch: known.epoch };
     if (known) return { tail: START, epoch: known.epoch + 1 };
-    return { tail: firstTail(info.size, info.mtimeMs), epoch: 0 };
+    return { tail: firstTail(path, info.size, info.mtimeMs), epoch: 0 };
   }
 
   /** Reads what one file gained since the last look and returns its complete new lines. */
-  function newLines({ path }: LogFile): Read | null {
-    const info = statOrNull(path);
-    if (!info) return null;
+  function newLines({ path }: LogFile, info: Stats): Read | null {
     const known = files.get(path) ?? remembered(path, info.ino, info.size);
     if (known && known.ino === info.ino && info.size === known.tail.offset) return null;
-    const { tail, epoch } = placeFor(known, info);
+    const { tail, epoch } = placeFor(path, known, info);
     const to = Math.min(info.size, tail.offset + chunkBytes);
     let chunk: Buffer | null = null;
     try {
@@ -169,7 +184,7 @@ export function watchLogs(opts: WatchOptions): () => void {
       safely(() => onPlace?.(path, tail.offset));
       return null;
     }
-    for (const message of said) if (message.startsWith(`${path}: `)) said.delete(message); // it reads again
+    unsay(path); // it reads again
     const step = advance(tail, chunk);
     files.set(path, { tail: step.state, ino: info.ino, epoch });
     safely(() => onPlace?.(path, step.state.offset));
@@ -178,9 +193,8 @@ export function watchLogs(opts: WatchOptions): () => void {
   }
 
   /** An agent's description, read once per change of the file (a half-written one is retried on the next look). */
-  function readMeta(file: LogFile & { meta: NonNullable<LogFile["meta"]> }): void {
-    const info = statOrNull(file.path);
-    if (!info || metas.get(file.path) === info.size) return;
+  function readMeta(file: LogFile & { meta: NonNullable<LogFile["meta"]> }, info: Stats): void {
+    if (metas.get(file.path) === info.size) return;
     let text: string;
     try {
       text = readRange(file.path, 0, info.size).toString("utf8");
@@ -195,8 +209,8 @@ export function watchLogs(opts: WatchOptions): () => void {
     metas.set(file.path, info.size);
   }
 
-  function follow(file: LogFile): void {
-    const read = newLines(file);
+  function follow(file: LogFile, info: Stats): void {
+    const read = newLines(file, info);
     if (!read) return;
     if (read.lines.length) safely(() => onLines?.(read.lines.length));
     emit(read);
@@ -205,25 +219,48 @@ export function watchLogs(opts: WatchOptions): () => void {
   }
 
   /** One file at a time. A file that fails is reported once and skipped, so one file can never stop the others. */
-  function look(file: LogFile): void {
+  function look(file: LogFile, info: Stats): void {
     try {
-      if (file.meta) readMeta({ ...file, meta: file.meta });
-      else follow(file);
+      if (file.meta) readMeta({ ...file, meta: file.meta }, info);
+      else follow(file, info);
     } catch (error) {
       reportOnce(file.path, error);
     }
   }
+
+  /** Drops everything kept about these paths, and says so. */
+  function forget(paths: string[]): void {
+    for (const path of paths) {
+      files.delete(path);
+      metas.delete(path);
+      unsay(path);
+      safely(() => onForget?.(path));
+    }
+  }
+
+  /** Is this a quiet file the watcher does not know (forgotten, or quiet since before the start)? It waits for a change. */
+  const isUnknownQuiet = (path: string, info: Stats, cutoffMs: number | undefined) =>
+    isQuiet(info.mtimeMs, cutoffMs) && !files.has(path) && !metas.has(path);
 
   function tick(): void {
     if (busy || stopped) return;
     busy = true;
     try {
       const paths = logFiles(root, (error) => reportOnce(root, error));
-      for (const file of paths ?? []) {
+      if (!paths) return;
+      const listed = new Map(paths.map((file) => [file.path, statOrNull(file.path)]));
+      const cutoffMs = forgetAfterMs === undefined ? undefined : Date.now() - forgetAfterMs;
+      forget(pathsToForget([...files.keys(), ...metas.keys()], listed, cutoffMs));
+      const quiet = new Set<string>();
+      for (const file of paths) {
         if (stopped) return;
-        look(file);
+        const info = listed.get(file.path);
+        if (!info) continue;
+        if (isUnknownQuiet(file.path, info, cutoffMs)) quiet.add(file.path);
+        else look(file, info);
       }
-      if (paths) first = false; // a folder that appears later is new work: read it all
+      waiting = quiet;
+      first = false; // a folder that appears later is new work: read it all
     } finally {
       busy = false;
     }

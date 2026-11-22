@@ -91,6 +91,24 @@ export class DeskLog {
     return this.marks.get(key);
   }
 
+  /** How many marks are kept, and how many message counts they hold between them. */
+  size(): { desks: number; tokenEntries: number } {
+    let tokenEntries = 0;
+    for (const m of this.marks.values()) tokenEntries += m.counted.size;
+    return { desks: this.marks.size, tokenEntries };
+  }
+
+  /**
+   * Drops the marks whose owner (`main:<id>` / `agent:<id>`) left the board, and those whose own newest event is older
+   * than `cutoffMs`. A mark with no time yet goes only with its owner. Its token counts go with it.
+   */
+  forget(cutoffMs: number, isKept: (key: string) => boolean): void {
+    for (const [key, m] of this.marks) {
+      const isOld = m.lastAt !== "" && Date.parse(m.lastAt) < cutoffMs;
+      if (isOld || !isKept(key)) this.marks.delete(key);
+    }
+  }
+
   note(e: NightEvent): void {
     const key = keyOf(e);
     const m = this.marks.get(key) ?? {

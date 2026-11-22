@@ -125,6 +125,26 @@ export class Board {
     return this.log.get(deskId)?.tokens ?? null;
   }
 
+  /**
+   * Forgets what has been quiet since before `cutoffMs`: main sessions (with their places, title and trouble), then
+   * background agents and desk marks (with their token counts), so months of work do not stay in memory.
+   */
+  forget(cutoffMs: number): void {
+    for (const [id, s] of this.sessions) if (Date.parse(s.lastAt) < cutoffMs) this.sessions.delete(id);
+    const isSessionKept = (id: string) => this.sessions.has(id);
+    this.workers.forget(cutoffMs, isSessionKept);
+    this.log.forget(cutoffMs, (key) =>
+      key.startsWith("main:") ? isSessionKept(key.slice("main:".length)) : this.workers.has(key.slice("agent:".length)),
+    );
+  }
+
+  /** How much the board holds in memory: sessions, agents, desk marks, their places and their message token counts. */
+  size(): { sessions: number; agents: number; desks: number; places: number; tokenEntries: number } {
+    let places = 0;
+    for (const s of this.sessions.values()) places += s.places.size;
+    return { sessions: this.sessions.size, agents: this.workers.size(), places, ...this.log.size() };
+  }
+
   /** One project's board: its newest session's place, what is happening now, and its background agents. */
   view(project: string, nowMs = Date.now()): BoardView {
     // A session shows on its own project's board and on every other repository it worked in (its steps split).

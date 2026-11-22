@@ -185,6 +185,7 @@ Claude writes most of the code; these keep it from drifting into a mess on a lon
 
 ## 13. Change log
 
+- 1.8 (2026-11-22): memory stays flat over months: what has been quiet longer than the 30-day keep window is not replayed at start-up and leaves memory (sessions, agents, token counts, followed files); nothing on screen changes (decisions.md).
 - 1.7 (2026-11-21): the public name on screen and in the docs is Spyglass (owner, 2026-11-21); code names, the command, the repo and the service keep theirs (decisions.md).
 - 1.6 (2026-11-21): GET /api/agents (Forge's Agents tile) is removed; Forge no longer reads it. GET /agents for Motherboard is unchanged.
 - 1.5 (2026-11-17): Spyglass no longer shows the usage meter or links to Sentinel; Motherboard owns both (decisions.md).
