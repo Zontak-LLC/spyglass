@@ -37,7 +37,8 @@ export type FileState = { ino: number; epoch: number; offset: number };
 export const DEFAULT_KEEP_DAYS = 30;
 /** Rows older versions stored from workflow journals (issue 28): never applied again. */
 const JOURNAL_KINDS = new Set(["run.launched", "run.queue", "agent.started", "agent.result"]);
-const DAY_MS = 86_400_000;
+/** One day in ms: the keep window is counted in days. */
+export const DAY_MS = 86_400_000;
 /** The history holds prompts, paths and tool steps: no other account on the computer may read it. */
 const PRIVATE_DIR_MODE = 0o700;
 const PRIVATE_FILE_MODE = 0o600;

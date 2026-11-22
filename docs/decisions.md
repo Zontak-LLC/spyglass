@@ -56,6 +56,11 @@ is made, in the same commit as the change. Rule 1 applies to every node: the rig
     tickets are rebuilt by replay, not kept in tables of their own that could drift from the events. Retention removes
     whole sessions quiet for 30 days (`NIGHTSHIFT_KEEP_DAYS`). If the file cannot be opened, Lens runs without
     history and says so.
+  - **Memory is bounded by the same keep window (issue 45, 2026-11-22).** At start-up the prune runs before the replay,
+    so a month-old session is never loaded; every hour `Board.forget` drops sessions, agents and desk marks (with their
+    places and token maps) quiet past `keepDays`, the watcher forgets files gone from the folder or unchanged that long
+    (a forgotten log that grows again is read from its last 256 KB), and the path cache in `store/root.ts` keeps at
+    most 5,000 entries. No new setting; the board's 6 h window for what is shown is unchanged.
   - **The history is private (2026-11-21).** It holds prompts, file paths and tool steps from every session, and
     another account on the computer must not read them. So each open (not only the first) sets the folder to 0700 and
     `nightshift.db` and its `-wal`/`-shm` files to 0600: `mkdir`'s mode applies only to a new folder and the umask can

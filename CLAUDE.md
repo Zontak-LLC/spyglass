@@ -21,8 +21,10 @@ before changing anything; update both in the same commit when a choice changes.
   to end a stuck process), so the service starts a fresh Lens.
 - `src/store/`: the board (state from events) and `history.ts`, the SQLite history (`node:sqlite`): every event under a
   key `<file>#<inode>.<epoch>@<line end>.<n>` (`INSERT OR IGNORE`, so a line read twice is stored once and not
-  applied twice), plus each file's saved offset. The ONLY place that writes to disk. `src/engine.ts` wires it: replay
-  the stored events into the `Board` (rows an older Lens stored from workflow runs are skipped, issue 28), prune (30 days, whole sessions, hourly), then `watchLogs` with `resume` and `onRead`.
+  applied twice), plus each file's saved offset. The ONLY place that writes to disk. `src/engine.ts` wires it: prune (30 days,
+  whole sessions, hourly), then replay the stored events into the `Board` (rows an older Lens stored from workflow runs
+  are skipped, issue 28), then `watchLogs` with `resume`, `onRead` and `forgetAfterMs`. Memory is bounded by the same
+  keep window: `Board.forget` runs hourly and the watcher forgets gone or quiet files (decisions.md).
   A file that was replaced (new inode) or cut short gets a new `epoch`, so its lines are new, not repeats.
 - `src/server/`: `/events` (Server-Sent Events, one `event: <kind>` frame per event), `/health` (the engine's
   `health()`: `lastLineAt`, `lastChangeAt`, `unreadSince`, 503 when stale), later `/state`; binds

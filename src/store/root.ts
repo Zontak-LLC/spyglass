@@ -6,7 +6,14 @@ import { dirname, join } from "node:path";
 export type RepoRoot = { root: string; worktree: boolean };
 export type RootOf = (path: string) => RepoRoot | null;
 
+/** Every path a tool touched is a key, so the cache is capped; past it the oldest entry goes first. */
+export const ROOT_CACHE_MAX = 5_000;
 const cache = new Map<string, RepoRoot | null>();
+
+/** How many paths the repository cache holds now (read only; the load test checks the cap). */
+export function rootCacheSize(): number {
+  return cache.size;
+}
 
 /** A linked worktree has a `.git` FILE: "gitdir: <main>/.git/worktrees/<name>". The main folder is above `.git`. */
 function mainOfWorktree(gitFile: string): string | null {
@@ -41,6 +48,10 @@ function lookup(path: string, home: string): RepoRoot | null {
  */
 export function repoRootOf(path: string, home = homedir()): RepoRoot | null {
   const key = `${home}\n${path}`;
-  if (!cache.has(key)) cache.set(key, lookup(path, home));
-  return cache.get(key) ?? null;
+  if (cache.has(key)) return cache.get(key) ?? null;
+  const found = lookup(path, home);
+  cache.set(key, found);
+  const oldest = cache.keys().next();
+  if (cache.size > ROOT_CACHE_MAX && !oldest.done) cache.delete(oldest.value);
+  return found;
 }

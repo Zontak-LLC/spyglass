@@ -42,6 +42,8 @@ export type BacklogTracker = {
   place: (path: string, offset: number) => void;
   /** Sizes now (sync stats, so a stuck read cannot hang it) -> the log waiting longest, or null. */
   check: (nowMs: number) => { path: string; sinceMs: number } | null;
+  /** The watcher forgot `path` (gone, or quiet for the keep window): drop its read place and its waiting time. */
+  forget: (path: string) => void;
 };
 
 export function backlogTracker(): BacklogTracker {
@@ -63,6 +65,10 @@ export function backlogTracker(): BacklogTracker {
       for (const look of looks) if (look.size === null) offsets.delete(look.path);
       state = backlogStep(state, looks, nowMs);
       return oldestUnread(state);
+    },
+    forget: (path) => {
+      offsets.delete(path);
+      state.delete(path);
     },
   };
 }

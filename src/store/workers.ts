@@ -60,6 +60,22 @@ export class Workers {
     return this.all.has(agentId);
   }
 
+  /** How many agents are kept in memory (shown or not). */
+  size(): number {
+    return this.all.size;
+  }
+
+  /**
+   * Drops the agents whose newest step is older than `cutoffMs`; one with no step yet goes when its session does.
+   * Its votes go with it.
+   */
+  forget(cutoffMs: number, isSessionKept: (sessionId: string) => boolean): void {
+    for (const [agentId, w] of this.all) {
+      const isOld = w.lastAt ? Date.parse(w.lastAt) < cutoffMs : !isSessionKept(w.parent);
+      if (isOld) this.all.delete(agentId);
+    }
+  }
+
   /** Applies one event of a background agent; true when something changed. */
   apply(e: NightEvent, agentId: string): boolean {
     let w = this.all.get(agentId);

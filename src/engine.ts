@@ -1,6 +1,6 @@
 // The engine: the watcher feeding the history and the board. The CLI adds the server and the terminal on top.
 import type { NightEvent } from "./parser/index.js";
-import { Board, DEFAULT_KEEP_DAYS, History } from "./store/index.js";
+import { Board, DAY_MS, DEFAULT_KEEP_DAYS, History } from "./store/index.js";
 import { backlogTracker, type Health, healthOf, newestChange, watchLogs } from "./watcher/index.js";
 
 export type EngineOptions = {
@@ -47,8 +47,13 @@ export function startEngine(options: EngineOptions): Engine {
     history = new History(":memory:");
   }
   const board = new Board();
-  history.replay((event) => board.apply(event));
+  const keepMs = keepDays * DAY_MS;
+  // Memory stays bounded: what has been quiet longer than the keep window is neither replayed nor kept. A session
+  // whose own events are recent can still hold an agent quiet that long, so the board forgets after the replay too.
+  const forgetBoard = () => board.forget(Date.now() - keepMs);
   history.prune(keepDays);
+  history.replay((event) => board.apply(event));
+  forgetBoard();
   const take = (event: NightEvent, key: string) => {
     if (!history.add(event, key)) return; // read before: the board already has it
     board.apply(event);
@@ -64,9 +69,15 @@ export function startEngine(options: EngineOptions): Engine {
       lastLineMs = Date.now();
     },
     onPlace: backlog.place,
+    forgetAfterMs: keepMs,
+    onForget: backlog.forget,
     ...(onError ? { onError } : {}),
   });
-  const pruner = setInterval(() => history.prune(keepDays), HOUR_MS);
+  // The watcher forgets gone and quiet files on each look itself; the history and the board are pruned hourly.
+  const pruner = setInterval(() => {
+    history.prune(keepDays);
+    forgetBoard();
+  }, HOUR_MS);
   pruner.unref();
   return {
     board,
