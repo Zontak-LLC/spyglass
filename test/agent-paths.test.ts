@@ -19,7 +19,7 @@ describe("finding the project from tool calls", () => {
 
   it("never lets the home folder or a folder without git decide, and treats a removed worktree path as its repo", async () => {
     const { repoRootOf } = await import("../src/store/index.js");
-    const home = realpathSync(mkdtempSync(join(tmpdir(), "nightshift-home-")));
+    const home = realpathSync(mkdtempSync(join(tmpdir(), "spyglass-home-")));
     try {
       mkdirSync(join(home, ".git"), { recursive: true }); // a dotfiles repo in the home folder
       mkdirSync(join(home, "plain", "deep"), { recursive: true });

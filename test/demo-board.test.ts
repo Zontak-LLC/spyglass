@@ -48,7 +48,7 @@ describe("the demo board for the README screenshot", () => {
   it("shows Demo App and Shop App from the fixtures, with recent activity", async () => {
     const port = await freePort();
     child = spawn(process.execPath, [SCRIPT], {
-      env: { ...process.env, NIGHTSHIFT_PORT: String(port) },
+      env: { ...process.env, SPYGLASS_PORT: String(port) },
       stdio: "ignore",
     });
     const rows = await firstProjects(port);

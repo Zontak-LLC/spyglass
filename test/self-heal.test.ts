@@ -203,11 +203,11 @@ describe.skipIf(!canLock)("the built command heals itself", () => {
     const child = spawn(process.execPath, ["dist/cli.js"], {
       env: {
         ...process.env,
-        NIGHTSHIFT_LOGS: logs,
-        NIGHTSHIFT_DATA: join(dir, "data"),
-        NIGHTSHIFT_PORT: String(await freePort()),
-        NIGHTSHIFT_STALE_MS: "300",
-        NIGHTSHIFT_WATCHDOG_MS: "100",
+        SPYGLASS_LOGS: logs,
+        SPYGLASS_DATA: join(dir, "data"),
+        SPYGLASS_PORT: String(await freePort()),
+        SPYGLASS_STALE_MS: "300",
+        SPYGLASS_WATCHDOG_MS: "100",
       },
     });
     stops.push(() => child.kill("SIGKILL"));

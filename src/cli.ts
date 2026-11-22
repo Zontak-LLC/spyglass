@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// Lens's `nightshift` command: wires the watcher to the server and the terminal. See CLAUDE.md for the layers.
+// Spyglass's `spyglass` command: wires the watcher to the server and the terminal. See CLAUDE.md for the layers.
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { startEngine } from "./engine.js";
 import type { NightEvent } from "./parser/index.js";
 import { startServer } from "./server/index.js";
+import { readSettings } from "./settings.js";
 import { DEFAULT_KEEP_DAYS, expand, loadPinned, projectTiles, repoOf } from "./store/index.js";
 import { terminalPrinter } from "./terminal.js";
 import { parseArgs, startBanner, usage } from "./usage.js";
@@ -13,6 +14,7 @@ import { STALE_MS, WATCHDOG_EVERY_MS, watchdog } from "./watcher/index.js";
 
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string };
 const command = parseArgs(process.argv.slice(2));
+const setting = readSettings(process.env, (message) => console.error(`spyglass: ${message}`));
 
 /** A positive whole number of ms from a setting, or the default for anything else. */
 function settingMs(text: string | undefined, fallback: number): number {
@@ -26,22 +28,22 @@ function hideHome(path: string): string {
 }
 
 async function start(): Promise<void> {
-  const root = process.env.NIGHTSHIFT_LOGS || join(homedir(), ".claude", "projects");
-  const dataDir = process.env.NIGHTSHIFT_DATA || join(homedir(), ".nightshift");
-  const keepDays = Number(process.env.NIGHTSHIFT_KEEP_DAYS) || DEFAULT_KEEP_DAYS;
+  const root = setting("LOGS") || join(homedir(), ".claude", "projects");
+  const dataDir = setting("DATA") || join(homedir(), ".nightshift");
+  const keepDays = Number(setting("KEEP_DAYS")) || DEFAULT_KEEP_DAYS;
   let publish: (event: NightEvent) => void = () => {};
   const print = terminalPrinter((id) => engine.board.agentLabel(id));
   const engine = startEngine({
     root,
     dbPath: join(dataDir, "nightshift.db"),
     keepDays,
-    staleMs: settingMs(process.env.NIGHTSHIFT_STALE_MS, STALE_MS),
+    staleMs: settingMs(setting("STALE_MS"), STALE_MS),
     onNew: (event) => {
       publish(event);
       const line = print(event);
       if (line) console.info(line);
     },
-    onError: (error) => console.error(`nightshift: ${error instanceof Error ? error.message : String(error)}`),
+    onError: (error) => console.error(`spyglass: ${error instanceof Error ? error.message : String(error)}`),
   });
   const { board } = engine;
   const pinnedFile = join(dataDir, "projects.json");
@@ -49,11 +51,11 @@ async function start(): Promise<void> {
   const warn = (message: string) => {
     if (message === lastWarning) return; // the list is read on every push; say a problem once
     lastWarning = message;
-    console.error(`nightshift: ${message}`);
+    console.error(`spyglass: ${message}`);
   };
   const tiles = () =>
     projectTiles(board.projects(), loadPinned(pinnedFile, warn), { home: homedir(), nowMs: Date.now() });
-  const server = await startServer(Number(process.env.NIGHTSHIFT_PORT) || 4400, {
+  const server = await startServer(Number(setting("PORT")) || 4400, {
     view: (project) => {
       const view = board.view(project);
       const home = homedir();
@@ -93,11 +95,11 @@ async function start(): Promise<void> {
       const unread = engine.unread();
       const file = unread ? hideHome(unread.path) : "a log";
       process.stderr.write(
-        `nightshift: ${file} has unread bytes since ${health.unreadSince} (last line read ${health.lastLineAt ?? "the start"}); killing this Spyglass so the service starts a fresh one\n`,
+        `spyglass: ${file} has unread bytes since ${health.unreadSince} (last line read ${health.lastLineAt ?? "the start"}); killing this Spyglass so the service starts a fresh one\n`,
         killSelf,
       );
     },
-    settingMs(process.env.NIGHTSHIFT_WATCHDOG_MS, WATCHDOG_EVERY_MS),
+    settingMs(setting("WATCHDOG_MS"), WATCHDOG_EVERY_MS),
   );
   process.on("SIGINT", () => void quit());
   process.on("SIGTERM", () => void quit());
@@ -107,6 +109,6 @@ if (command.kind === "version") console.info(pkg.version);
 else if (command.kind === "help") console.info(usage(pkg.version));
 else if (command.kind === "start") await start();
 else {
-  console.error(`nightshift: unknown option ${command.arg}\n\n${usage(pkg.version)}`);
+  console.error(`spyglass: unknown option ${command.arg}\n\n${usage(pkg.version)}`);
   process.exitCode = 2;
 }

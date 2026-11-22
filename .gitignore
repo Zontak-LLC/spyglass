@@ -4,5 +4,5 @@ coverage
 *.sqlite
 *.sqlite-journal
 .DS_Store
-nightshift.config.json
+spyglass.config.json
 .nightshift/
