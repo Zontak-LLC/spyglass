@@ -81,7 +81,7 @@ export function useDeskLogs() {
   }
 
   beforeEach(() => {
-    base = realpathSync(mkdtempSync(join(tmpdir(), "nightshift-desks-")));
+    base = realpathSync(mkdtempSync(join(tmpdir(), "spyglass-desks-")));
     writeLogs();
   });
   afterEach(() => {

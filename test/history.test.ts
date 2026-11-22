@@ -37,7 +37,7 @@ describe("line ends", () => {
 });
 
 // Spec ticket 6: stop and start; nothing lost, nothing doubled.
-describe("a developer restarts Night Shift", () => {
+describe("a developer restarts Spyglass", () => {
   let dir = "";
   let stop: () => void = () => {};
   afterEach(() => {
@@ -45,7 +45,7 @@ describe("a developer restarts Night Shift", () => {
     rmSync(dir, { recursive: true, force: true });
   });
   const setup = () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-hist-"));
+    dir = mkdtempSync(join(tmpdir(), "spyglass-hist-"));
     mkdirSync(join(dir, "logs", "demo-app"), { recursive: true });
     return {
       root: join(dir, "logs"),
@@ -74,7 +74,7 @@ describe("a developer restarts Night Shift", () => {
     const stored = engine.history.count();
     stop();
 
-    appendFileSync(log, toolUse("t3", "c.ts")); // written while Night Shift was off
+    appendFileSync(log, toolUse("t3", "c.ts")); // written while Spyglass was off
     const second: string[] = [];
     engine = open(root, db, second);
     expect(steps(engine)).toEqual(["Editing b.ts"]); // history alone, before any file is read

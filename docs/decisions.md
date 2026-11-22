@@ -11,11 +11,25 @@ is made, in the same commit as the change. Rule 1 applies to every node: the rig
 - **Mapping:** Lens -> Spyglass.
 - **Words only.** Every word a person reads changes: the start page, a board's title, header and banner, the loading
   text, the terminal's help and start line, the 403 text, the service log's stale line, README.md, SECURITY.md and
-  docs/SPEC.md. Identifiers, file and folder names, the `nightshift` command and npm package, ports, URLs, config keys,
-  `~/.nightshift`, `NIGHTSHIFT_*`, the systemd unit, the launchd label and the repo name keep theirs, so no install
-  breaks. Flow renames the repo, the service and the other projects' mentions by hand later.
+  docs/SPEC.md. Identifiers, file and folder names, ports and `~/.nightshift` keep theirs, so no install breaks. The
+  command, npm package, settings, log prefix and service names followed in the next step (below).
 - **Kept off the screens:** `test/old-names.ts` now lists the old name too; the page, command and docs tests fail on
-  it. The README's one rename note is the only place a reader still meets it.
+  it. The README's rename note is the only place a reader still meets it.
+
+## Settings, command, package and service: spyglass (2026-11-22)
+
+- **Branch taken:** the command and npm package are `spyglass` (bin `spyglass`, repo URLs github.com/Zontak-LLC/spyglass),
+  the settings are `SPYGLASS_*` (PORT, LOGS, DATA, KEEP_DAYS, STALE_MS, WATCHDOG_MS), every log and error line starts
+  with `spyglass: `, and the README's service steps use `dev.spyglass` (launchd), `spyglass.service` (systemd) and
+  `~/Library/Logs/spyglass.log`.
+- **Old settings keep working:** `src/settings.ts` reads `SPYGLASS_<name>`, falls back to `NIGHTSHIFT_<name>`, and an
+  empty value counts as unset. Using an old name writes one `spyglass: NIGHTSHIFT_<name> is the old name; use
+  SPYGLASS_<name>` line per name per start (one line, not one per read: E1, no noise in the service log).
+- **Old services:** a service set up from an older README (`lens` / `dev.lens`) is the user's own file and keeps running;
+  the code does not touch it. The README tells them to stop it first, so two do not fight over port 4400.
+- **Not yet:** the data folder stays `~/.nightshift` with `nightshift.db`; moving it to `~/.spyglass` is the next step,
+  with the start page text that names `projects.json`. The `nightshift:tab` key in the browser stays.
+- **Ruled out:** dropping `NIGHTSHIFT_*` at once (it would break every install silently).
 
 ## Who is it for?
 

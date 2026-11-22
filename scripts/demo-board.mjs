@@ -1,7 +1,7 @@
-// Starts Lens on invented demo data, for the README screenshot: `node scripts/demo-board.mjs`, then open
-// http://localhost:4400 (or NIGHTSHIFT_PORT). It never reads ~/.claude: the logs are copies of test/fixtures (the
+// Starts Spyglass on invented demo data, for the README screenshot: `node scripts/demo-board.mjs`, then open
+// http://localhost:4400 (or SPYGLASS_PORT). It never reads ~/.claude: the logs are copies of test/fixtures (the
 // projects "demo-app" and "shop-app", under /work) with their times moved into the last hour so the board looks alive,
-// in temporary NIGHTSHIFT_LOGS and NIGHTSHIFT_DATA folders that are removed when it stops (Ctrl-C).
+// in temporary SPYGLASS_LOGS and SPYGLASS_DATA folders that are removed when it stops (Ctrl-C).
 import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -10,7 +10,7 @@ import { join } from "node:path";
 const REPO = join(import.meta.dirname, "..");
 const FIXTURES = join(REPO, "test", "fixtures");
 const STAMP = /"(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z)"/g;
-const base = mkdtempSync(join(tmpdir(), "lens-demo-"));
+const base = mkdtempSync(join(tmpdir(), "spyglass-demo-"));
 const logs = join(base, "logs");
 const data = join(base, "data");
 
@@ -43,14 +43,14 @@ const pinned = [
 ];
 writeFileSync(join(data, "projects.json"), `${JSON.stringify(pinned, null, 2)}\n`);
 
-const lens = spawn(process.execPath, ["--import", "tsx", join(REPO, "src", "cli.ts")], {
+const spyglass = spawn(process.execPath, ["--import", "tsx", join(REPO, "src", "cli.ts")], {
   cwd: REPO,
   stdio: "inherit",
-  env: { ...process.env, NIGHTSHIFT_LOGS: logs, NIGHTSHIFT_DATA: data },
+  env: { ...process.env, SPYGLASS_LOGS: logs, SPYGLASS_DATA: data },
 });
 const cleanUp = () => rmSync(base, { recursive: true, force: true });
-lens.on("exit", (code) => {
+spyglass.on("exit", (code) => {
   cleanUp();
   process.exit(code ?? 0);
 });
-for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => lens.kill(signal));
+for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => spyglass.kill(signal));

@@ -1,6 +1,6 @@
 # Spyglass (was Lens, before that Night Shift)
 
-The name on screen and in the docs is Spyglass; code, files, the command and the repo still say lens/nightshift (decisions.md).
+The name on screen, in the docs, the `spyglass` command and package, the `SPYGLASS_*` settings (old `NIGHTSHIFT_*` still read, with one warning each) and the service names is Spyglass; the data folder `~/.nightshift` moves next (decisions.md).
 
 A live screen for Claude Code agents. Read `docs/SPEC.md` (what and why) and `docs/decisions.md` (the decision tree)
 before changing anything; update both in the same commit when a choice changes.

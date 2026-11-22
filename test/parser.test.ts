@@ -4,7 +4,7 @@ import { parseLine, parseLog, toolSummary } from "../src/parser/index.js";
 
 const sample = readFileSync("test/fixtures/session-basic.jsonl", "utf8");
 
-// SPEC scenario 2: a session reads a file, edits it and runs the tests; Night Shift sees each step in order.
+// SPEC scenario 2: a session reads a file, edits it and runs the tests; Spyglass sees each step in order.
 describe("a session works on a bug", () => {
   const { events, skipped } = parseLog(sample);
   const steps = events.filter((e) => e.kind === "tool.use" || e.kind === "tool.result");

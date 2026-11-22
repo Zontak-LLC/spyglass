@@ -32,24 +32,49 @@ describe("the README a stranger reads first", () => {
     expect(README).not.toContain(word);
   });
 
-  // A stale Lens kills itself, so the README's background setup must be a service that starts it again.
+  // A stale Spyglass kills itself, so the README's background setup must be a service that starts it again.
   it("runs Spyglass in the background as a service that restarts it", () => {
     expect(README).toContain("KeepAlive");
     expect(README).toContain("Restart=always");
   });
 
-  // The one place the old name is meant: README's note on why the command keeps it. Only that exact sentence is
-  // removed, so a second mention anywhere else still fails.
+  // The two places an old name is meant: the note on what was renamed and the note on stopping a service set up
+  // under an older name. Only these exact sentences are removed, so a second mention anywhere else still fails.
   const RENAME_NOTE =
-    "Spyglass was called Lens, and before that Night Shift; the command and ~/.nightshift keep that name for now.";
+    "Spyglass was called Lens, and before that Night Shift; old NIGHTSHIFT_* settings still work (with one warning each) and ~/.nightshift keeps its name for now.";
+  const UPGRADE_NOTE =
+    "Set it up under an older name? Stop that service first, so two do not fight over port 4400: `launchctl bootout gui/$(id -u)/dev.lens` on macOS, `systemctl --user disable --now lens` on Linux.";
+  const README_WITHOUT_NOTES = README.replace(RENAME_NOTE, "").replace(UPGRADE_NOTE, "");
   const docs: [string, string][] = [
-    ["README.md", README.replace(RENAME_NOTE, "")],
+    ["README.md", README_WITHOUT_NOTES],
     ["SECURITY.md", readFileSync(join(ROOT, "SECURITY.md"), "utf8")],
     ["docs/SPEC.md", readFileSync(join(ROOT, "docs", "SPEC.md"), "utf8")],
   ];
 
-  it("keeps its one rename note", () => {
-    expect(README.split(RENAME_NOTE)).toHaveLength(2);
+  it.each([RENAME_NOTE, UPGRADE_NOTE])("keeps its one note: %s", (note) => {
+    expect(README.split(note)).toHaveLength(2);
+  });
+
+  it.each([
+    "NIGHTSHIFT_",
+    "dev.lens",
+    "lens.service",
+    "lens.log",
+    "Library/Logs/lens.log",
+    "github.com/Zontak-LLC/lens",
+    "Zontak-LLC/lens",
+  ])("outside its notes, does not say %s", (old) => {
+    expect(README_WITHOUT_NOTES).not.toContain(old);
+  });
+
+  it.each([
+    "dev.spyglass",
+    "spyglass.service",
+    "Library/Logs/spyglass.log",
+    "SPYGLASS_PORT",
+    "systemctl --user enable --now spyglass",
+  ])("sets Spyglass up under its own name: %s", (name) => {
+    expect(README).toContain(name);
   });
 
   it.each(docs)("%s says none of the old names", (_file, text) => {

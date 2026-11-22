@@ -26,22 +26,24 @@ async function firstFrame(port: number, project: string): Promise<unknown> {
 const run = (...args: string[]) =>
   spawnSync(process.execPath, ["--import", "tsx", "src/cli.ts", ...args], { encoding: "utf8" });
 
-// Scenario: a developer who just installed Lens asks it what it is.
-describe("a developer runs nightshift for the first time", () => {
+// Scenario: a developer who just installed Spyglass asks it what it is.
+describe("a developer runs spyglass for the first time", () => {
   it("explains what it does, how to use it, and that nothing leaves the computer", () => {
     const { stdout, status } = run("--help");
     expect(status).toBe(0);
     expect(stdout).toMatch(/^Spyglass \d+\.\d+\.\d+/);
     expect(stdout).toContain("Claude Code agents");
-    expect(stdout).toContain("-v, --version");
+    expect(stdout).toContain("spyglass -v, --version");
+    expect(stdout.replaceAll("~/.nightshift", "")).not.toContain("nightshift");
     expect(stdout).toContain("Spyglass only reads Claude Code's log files. Nothing leaves your computer.");
     for (const old of OLD_NAMES) expect(stdout).not.toContain(old);
-    // Only Lens's own settings: the usage meter and the Sentinel link are Motherboard's now.
-    expect([...stdout.matchAll(/NIGHTSHIFT_\w+/g)].map((m) => m[0])).toEqual([
-      "NIGHTSHIFT_PORT",
-      "NIGHTSHIFT_LOGS",
-      "NIGHTSHIFT_DATA",
-      "NIGHTSHIFT_KEEP_DAYS",
+    // Only Spyglass's own settings, under their new names (no old prefix): the usage meter and the Sentinel link are
+    // Motherboard's now.
+    expect([...stdout.matchAll(/\b[A-Z]+_[A-Z_]+\b/g)].map((m) => m[0])).toEqual([
+      "SPYGLASS_PORT",
+      "SPYGLASS_LOGS",
+      "SPYGLASS_DATA",
+      "SPYGLASS_KEEP_DAYS",
     ]);
     expect(stdout).not.toMatch(/Sentinel|usage meter|usage file/i);
   });
@@ -53,9 +55,9 @@ describe("a developer runs nightshift for the first time", () => {
       env: {
         ...process.env,
         HOME: home,
-        NIGHTSHIFT_LOGS: join(home, "logs"),
-        NIGHTSHIFT_DATA: join(home, "data"),
-        NIGHTSHIFT_PORT: String(port),
+        SPYGLASS_LOGS: join(home, "logs"),
+        SPYGLASS_DATA: join(home, "data"),
+        SPYGLASS_PORT: String(port),
       },
     });
     let stdout = "";
@@ -81,7 +83,7 @@ describe("a developer runs nightshift for the first time", () => {
       expect(Array.isArray(tiles)).toBe(true);
       for (const tile of tiles) expect(Object.keys(tile)).not.toContain("watch");
       await new Promise((r) => setTimeout(r, 300)); // time for a late warning to show
-      expect(stderr).not.toContain("nightshift:");
+      expect(stderr).not.toContain("spyglass:");
       expect(`${stdout}${stderr}`).not.toMatch(/Sentinel|usage/i);
     } finally {
       const exited = new Promise((r) => child.once("exit", r));
@@ -112,7 +114,7 @@ describe("a developer runs nightshift for the first time", () => {
   it("refuses an unknown option with exit code 2 and shows the help", () => {
     const { stderr, status } = run("--bogus");
     expect(status).toBe(2);
-    expect(stderr).toContain("unknown option --bogus");
+    expect(stderr).toContain("spyglass: unknown option --bogus");
     expect(stderr).toContain("Usage:");
   });
 

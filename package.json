@@ -1,5 +1,5 @@
 {
-  "name": "nightshift",
+  "name": "spyglass",
   "version": "0.0.0",
   "private": true,
   "description": "A live screen for your Claude Code agents: what they are doing now and what they did overnight. Runs on your own computer; nothing leaves it.",
@@ -12,20 +12,20 @@
   ],
   "author": "Denis Zontak <zontakllc@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/Zontak-LLC/lens#readme",
+  "homepage": "https://github.com/Zontak-LLC/spyglass#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Zontak-LLC/lens.git"
+    "url": "git+https://github.com/Zontak-LLC/spyglass.git"
   },
   "bugs": {
-    "url": "https://github.com/Zontak-LLC/lens/issues"
+    "url": "https://github.com/Zontak-LLC/spyglass/issues"
   },
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "bin": {
-    "nightshift": "dist/cli.js"
+    "spyglass": "dist/cli.js"
   },
   "files": [
     "dist"

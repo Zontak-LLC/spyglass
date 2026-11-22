@@ -24,14 +24,14 @@ Spyglass is a free, open-source tool any developer runs on their own computer to
 
 Every choice below was picked for this job, not from habit. The runner-up is named so the choice can be revisited.
 
-| Part                  | Choice                                                                                      | Why it fits                                                                                             | Runner-up                                                   |
-| --------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Background service    | Node.js 22 + TypeScript                                                                     | Good at watching files and streaming events; one language from service to screen                        | Go: leaner, but no real gain on one Mac                     |
-| Live updates          | Server-Sent Events (SSE)                                                                    | Updates only flow from the service to the page, which is exactly what SSE does; simpler than WebSockets | WebSockets: two-way, not needed                             |
-| History               | SQLite, one file                                                                            | Keeps every night's events, searchable, no server to run                                                | JSON files: simple but slow to search                       |
-| Screen                | A local web page at `http://localhost:4400`                                                 | Opens in any browser; I already design well for the web                                                 | A menu-bar app: a later stretch                             |
-| Hosting               | None: it runs on each developer's own computer                                              | Their agents and logs are there; private code and data never leave it                                   | A hosted service (needs accounts and trust; not now)        |
-| Code home and install | GitHub, open source (MIT), CI on every change; published to npm so `npx nightshift` runs it | Other developers can read, trust, install and improve it                                                | A downloadable app (signing and updates are much more work) |
+| Part                  | Choice                                                                                    | Why it fits                                                                                             | Runner-up                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Background service    | Node.js 22 + TypeScript                                                                   | Good at watching files and streaming events; one language from service to screen                        | Go: leaner, but no real gain on one Mac                     |
+| Live updates          | Server-Sent Events (SSE)                                                                  | Updates only flow from the service to the page, which is exactly what SSE does; simpler than WebSockets | WebSockets: two-way, not needed                             |
+| History               | SQLite, one file                                                                          | Keeps every night's events, searchable, no server to run                                                | JSON files: simple but slow to search                       |
+| Screen                | A local web page at `http://localhost:4400`                                               | Opens in any browser; I already design well for the web                                                 | A menu-bar app: a later stretch                             |
+| Hosting               | None: it runs on each developer's own computer                                            | Their agents and logs are there; private code and data never leave it                                   | A hosted service (needs accounts and trust; not now)        |
+| Code home and install | GitHub, open source (MIT), CI on every change; published to npm so `npx spyglass` runs it | Other developers can read, trust, install and improve it                                                | A downloadable app (signing and updates are much more work) |
 
 ## 5. What it reads (the data)
 
@@ -62,15 +62,15 @@ Timeline draws a bar each, and the start page lists projects that only helpers t
    "Spyglass · usehourly" so several windows can be told apart. The start page (`http://localhost:4400/`) lists the projects with something running in
    the last 10 minutes, one click to each board; quiet projects are not listed (their runs are in History).
 5. **History:** last night's runs kept in SQLite; a "Last night" view that summarises what was done: sessions, files changed, commands run, errors.
-6. **One command to start, for anyone:** `npx nightshift` finds the Claude Code logs folder on its own (macOS, Linux and Windows locations), starts the service and opens the page. A first-run screen says what it found ("12 projects, 3 sessions running") and how to change it.
-7. **Settings without a settings screen:** an optional `nightshift.config.json` (port, which projects to watch, which to hide) with safe defaults; the page shows where the file lives.
+6. **One command to start, for anyone:** `npx spyglass` finds the Claude Code logs folder on its own (macOS, Linux and Windows locations), starts the service and opens the page. A first-run screen says what it found ("12 projects, 3 sessions running") and how to change it.
+7. **Settings without a settings screen:** an optional `spyglass.config.json` (port, which projects to watch, which to hide) with safe defaults; the page shows where the file lives.
 
 **Out (not in version 1, on purpose):**
 - Watching GitHub pull requests and CI runs (version 2).
 - Controlling agents (pausing, stopping): version 1 only watches.
 - **Night run (version 2, the owner's idea, 2026-10-23):** Spyglass starts the night's work itself. **By default it
   runs all night until every ticket in the queue is done.** A developer whose account has a usage limit can set one
-  (`ticketLimit` in `nightshift.config.json`, for example 5 or 10): the run then stops cleanly after that many tickets
+  (`ticketLimit` in `spyglass.config.json`, for example 5 or 10): the run then stops cleanly after that many tickets
   with a summary, and **"Start next batch"** runs the next ones. Either way, reaching the account's usage limit pauses
   the run ("Paused: usage limit") instead of failing it, and it resumes later without redoing finished tickets. Watching (version 1) comes first: a run can only be safe once it can be seen.
 - Accounts, sign-in, cloud hosting, a shared team board, a phone view.
@@ -88,7 +88,7 @@ Claude Code log files ──► Watcher ──► Parser ──► Event store (
 - **Parser:** turns one raw log line into one Spyglass event (`session.started`, `tool.read`, `tool.edit`, `tool.command`, `tool.result`, `agent.started`, `agent.finished`, ...). Pure functions, no file access, fully tested.
 - **Event store:** writes events to SQLite and keeps the current state of each session in memory.
 - **Stream:** `GET /events` sends every new event to the open pages (SSE); `GET /state` returns the current state for a page that just opened.
-- **Desks:** `GET /agents` (`http://127.0.0.1:4400/agents`, the port is `NIGHTSHIFT_PORT`) returns every live agent as
+- **Desks:** `GET /agents` (`http://127.0.0.1:4400/agents`, the port is `SPYGLASS_PORT`) returns every live agent as
   JSON in board-kit's `Agents` shape (`list` of `Agent`, commit 0c60024) for Motherboard's Agents tab: role, title and
   repo, model, current step and the two before it, step count, run time and `state` (`waits` = "waits for
   you"). Read only (other methods get 405), `cache-control: no-store`, this computer only (Host check), no CORS. No
@@ -143,7 +143,7 @@ Each scenario is an automated test that feeds real-shaped log lines in and check
 6. **Restart:** stop and start Spyglass; history and current state come back from SQLite; nothing is shown twice.
 7. **Last night:** after an 8-hour run, "Last night" lists the sessions, the files changed and any failed commands.
 8. **Read only:** no test, and no code path, writes inside the Claude Code folder.
-9. **A stranger installs it:** on a clean machine with Claude Code logs in the usual place, `npx nightshift` starts, finds the logs, and the first-run screen names what it found, with no setup.
+9. **A stranger installs it:** on a clean machine with Claude Code logs in the usual place, `npx spyglass` starts, finds the logs, and the first-run screen names what it found, with no setup.
 10. **Nothing leaves the computer:** the service listens on localhost only and makes no outgoing network calls (a test fails if it tries).
 11. **Background agents:** a parent session starts two helpers in other repositories and one in a worktree of its own; the
     board of each repository shows only its helpers, the parent's project keeps the worktree one, new helper files and
@@ -173,11 +173,11 @@ Claude writes most of the code; these keep it from drifting into a mess on a lon
 | 5   | Session timeline                                                                                       | Click a session, see its steps in order                           |
 | 6   | SQLite history + restart                                                                               | Stop and start; nothing lost, nothing doubled                     |
 | 7   | Workflow board                                                                                         | The assembly line, live                                           |
-| 8   | `npx nightshift` for anyone: find the logs on any OS, first-run screen, publish to npm                 | A friend can run it in one command                                |
+| 8   | `npx spyglass` for anyone: find the logs on any OS, first-run screen, publish to npm                   | A friend can run it in one command                                |
 
 ## 12. Open questions
 
-1. Name: Spyglass (2026-11-21). The npm and command name stay nightshift.
+1. Name: Spyglass (2026-11-21). The npm and command name is spyglass too (2026-11-22).
 2. Port 4400, or another?
 3. Should "Last night" also be sent somewhere in the morning (a notification, an email to myself), or only shown on the page?
 4. Which projects to watch by default: all of them, or ask on first run?

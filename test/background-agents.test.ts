@@ -121,7 +121,7 @@ function follow(board: Board, events: NightEvent[] = []) {
 }
 
 beforeEach(() => {
-  dir = realpathSync(mkdtempSync(join(tmpdir(), "nightshift-agents-")));
+  dir = realpathSync(mkdtempSync(join(tmpdir(), "spyglass-agents-")));
   repos = makeRepos(dir);
   writeSession(join(dir, "logs"));
   dir = join(dir, "logs");

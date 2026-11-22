@@ -57,9 +57,9 @@ describe("a developer runs Lens as a service", () => {
       env: {
         ...process.env,
         HOME: home,
-        NIGHTSHIFT_LOGS: logs,
-        NIGHTSHIFT_DATA: join(home, "data"),
-        NIGHTSHIFT_PORT: String(port),
+        SPYGLASS_LOGS: logs,
+        SPYGLASS_DATA: join(home, "data"),
+        SPYGLASS_PORT: String(port),
       },
     });
     let stdout = "";

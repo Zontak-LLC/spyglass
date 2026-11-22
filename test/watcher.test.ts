@@ -56,7 +56,7 @@ describe("following a growing file", () => {
 });
 
 // SPEC scenarios 1 and 2, live: a session starts and works; each step reaches the stream within 2 seconds.
-describe("a developer runs Claude Code while Night Shift watches", () => {
+describe("a developer runs Claude Code while Spyglass watches", () => {
   let dir = "";
   let stop: () => void = () => {};
   afterEach(() => {
@@ -65,7 +65,7 @@ describe("a developer runs Claude Code while Night Shift watches", () => {
   });
 
   it("sees a new session and each new step as it is written, even a line written in two halves", async () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-"));
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
     mkdirSync(join(dir, "demo-app"));
     const events: NightEvent[] = [];
     stop = watchLogs({ root: dir, everyMs: 50, onEvent: (e) => events.push(e) });
@@ -82,7 +82,7 @@ describe("a developer runs Claude Code while Night Shift watches", () => {
   });
 
   it("follows a session log through 1,000 appends, whole lines and halves, with no read ever stuck", async () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-"));
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
     mkdirSync(join(dir, "demo-app"));
     const log = join(dir, "demo-app", "s1.jsonl");
     const summaries: string[] = [];
@@ -122,7 +122,7 @@ describe("a developer runs Claude Code while Night Shift watches", () => {
   });
 
   it("does not replay old, quiet logs as if they were happening now", async () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-"));
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
     mkdirSync(join(dir, "old-app"));
     const old = join(dir, "old-app", "s0.jsonl");
     writeFileSync(old, toolUse("old", "x.ts"));
@@ -137,8 +137,8 @@ describe("a developer runs Claude Code while Night Shift watches", () => {
     expect(events.flatMap((e) => (e.kind === "tool.use" ? [e.summary] : []))).toEqual(["Editing y.ts"]);
   });
 
-  it("reads a whole session that starts after Night Shift did, and a log that is replaced", async () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-"));
+  it("reads a whole session that starts after Spyglass did, and a log that is replaced", async () => {
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
     const events: NightEvent[] = [];
     stop = watchLogs({ root: dir, everyMs: 50, onEvent: (e) => events.push(e) });
     await new Promise((r) => setTimeout(r, 150)); // the logs folder does not exist yet
@@ -155,7 +155,7 @@ describe("a developer runs Claude Code while Night Shift watches", () => {
   });
 
   it("reads only the recent end of a big log, without a broken first line", async () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-"));
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
     mkdirSync(join(dir, "demo-app"));
     const lines = Array.from({ length: 40 }, (_, i) => toolUse(`t${i}`, `f${i}.ts`));
     writeFileSync(join(dir, "demo-app", "s1.jsonl"), lines.join(""));
@@ -180,7 +180,7 @@ describe("a developer runs Claude Code while Night Shift watches", () => {
   });
 
   it("keeps watching when a listener throws", async () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-"));
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
     mkdirSync(join(dir, "demo-app"));
     writeFileSync(join(dir, "demo-app", "s1.jsonl"), toolUse("t1", "a.ts") + toolUse("t2", "b.ts"));
     const seen: string[] = [];
@@ -200,7 +200,7 @@ describe("a developer runs Claude Code while Night Shift watches", () => {
   });
 
   it("leaves a workflow run alone (Forge shows pipelines), and follows the background agent next to it", async () => {
-    dir = mkdtempSync(join(tmpdir(), "nightshift-"));
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
     const subagents = join(dir, "demo-app", "s-demo-1", "subagents");
     const run = join(subagents, "workflows", "wf_demo");
     mkdirSync(run, { recursive: true });

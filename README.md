@@ -12,7 +12,7 @@ A live screen for your Claude Code agents: what they are doing right now, and wh
 You need Node 22 or newer.
 
 ```bash
-git clone https://github.com/Zontak-LLC/lens && cd lens
+git clone https://github.com/Zontak-LLC/spyglass && cd spyglass
 npm install && npm run build
 npm start
 ```
@@ -36,9 +36,9 @@ Spyglass runs on your own computer. It has no accounts, no server and no telemet
 
 ## Settings
 
-`NIGHTSHIFT_PORT` (default 4400), `NIGHTSHIFT_LOGS` (default `~/.claude/projects`), `NIGHTSHIFT_DATA` (where the
-history is kept, default `~/.nightshift`) and `NIGHTSHIFT_KEEP_DAYS` (default 30). `NIGHTSHIFT_STALE_MS` (default 1800000, 30 minutes:
-how long a log's bytes may wait unread before Spyglass counts as stale and restarts) and `NIGHTSHIFT_WATCHDOG_MS` (default
+`SPYGLASS_PORT` (default 4400), `SPYGLASS_LOGS` (default `~/.claude/projects`), `SPYGLASS_DATA` (where the
+history is kept, default `~/.nightshift`) and `SPYGLASS_KEEP_DAYS` (default 30). `SPYGLASS_STALE_MS` (default 1800000, 30 minutes:
+how long a log's bytes may wait unread before Spyglass counts as stale and restarts) and `SPYGLASS_WATCHDOG_MS` (default
 60000: how often it checks) exist mostly for tests; anything that is not a positive whole number means the default.
 
 The start page shows the git repositories directly under `~/Projects` that Claude worked in during the last 30 days,
@@ -86,35 +86,37 @@ stays at home). Idle projects stay on the start page, dimmer.
 Run it as a service, so the computer starts it again whenever it stops. Run these from this folder, after
 `npm run build`; the here-docs fill in your own paths.
 
-macOS (a LaunchAgent; the log goes to `~/Library/Logs/lens.log`):
+Set it up under an older name? Stop that service first, so two do not fight over port 4400: `launchctl bootout gui/$(id -u)/dev.lens` on macOS, `systemctl --user disable --now lens` on Linux.
+
+macOS (a LaunchAgent; the log goes to `~/Library/Logs/spyglass.log`):
 
 ```bash
-cat > ~/Library/LaunchAgents/dev.lens.plist <<EOF
+cat > ~/Library/LaunchAgents/dev.spyglass.plist <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>dev.lens</string>
+  <key>Label</key><string>dev.spyglass</string>
   <key>ProgramArguments</key>
   <array><string>$(command -v node)</string><string>$PWD/dist/cli.js</string></array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>$HOME/Library/Logs/lens.log</string>
-  <key>StandardErrorPath</key><string>$HOME/Library/Logs/lens.log</string>
+  <key>StandardOutPath</key><string>$HOME/Library/Logs/spyglass.log</string>
+  <key>StandardErrorPath</key><string>$HOME/Library/Logs/spyglass.log</string>
 </dict>
 </plist>
 EOF
-touch ~/Library/Logs/lens.log && chmod 600 ~/Library/Logs/lens.log   # only you can read the log
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/dev.lens.plist   # start
-tail -f ~/Library/Logs/lens.log                                          # follow the log
-launchctl bootout gui/$(id -u)/dev.lens                                  # stop (it saves its place and closes the file)
+touch ~/Library/Logs/spyglass.log && chmod 600 ~/Library/Logs/spyglass.log   # only you can read the log
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/dev.spyglass.plist   # start
+tail -f ~/Library/Logs/spyglass.log                                          # follow the log
+launchctl bootout gui/$(id -u)/dev.spyglass                                  # stop (it saves its place and closes the file)
 ```
 
 Linux (a systemd user unit; the log goes to your own journal):
 
 ```bash
 mkdir -p ~/.config/systemd/user
-cat > ~/.config/systemd/user/lens.service <<EOF
+cat > ~/.config/systemd/user/spyglass.service <<EOF
 [Unit]
 Description=Spyglass, a live screen for Claude Code agents
 
@@ -126,9 +128,9 @@ Restart=always
 WantedBy=default.target
 EOF
 systemctl --user daemon-reload
-systemctl --user enable --now lens    # start, and start again at every login
-journalctl --user -u lens -f          # follow the log
-systemctl --user stop lens            # stop (it saves its place and closes the file)
+systemctl --user enable --now spyglass    # start, and start again at every login
+journalctl --user -u spyglass -f          # follow the log
+systemctl --user stop spyglass            # stop (it saves its place and closes the file)
 ```
 
 Check it on either:
@@ -155,7 +157,7 @@ node scripts/demo-board.mjs      # Spyglass on invented demo data (the screensho
 
 ## Name
 
-Spyglass was called Lens, and before that Night Shift; the command and ~/.nightshift keep that name for now.
+Spyglass was called Lens, and before that Night Shift; old NIGHTSHIFT_* settings still work (with one warning each) and ~/.nightshift keeps its name for now.
 
 ## Licence
 
