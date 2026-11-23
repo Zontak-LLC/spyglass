@@ -7,9 +7,11 @@ import type { NightEvent } from "../src/parser/index.js";
 import { Board, History } from "../src/store/index.js";
 import { advance, START } from "../src/watcher/index.js";
 
+// Recent, so the keep window never prunes the fixtures as the calendar moves on.
+const RECENT = new Date(Date.now() - 60_000).toISOString();
 const line = (o: Record<string, unknown>) =>
-  `${JSON.stringify({ sessionId: "s1", cwd: "/work/demo-app", gitBranch: "main", timestamp: "2026-10-23T22:00:00.000Z", ...o })}\n`;
-const toolUse = (id: string, file: string, at = "2026-10-23T22:00:00.000Z") =>
+  `${JSON.stringify({ sessionId: "s1", cwd: "/work/demo-app", gitBranch: "main", timestamp: RECENT, ...o })}\n`;
+const toolUse = (id: string, file: string, at = RECENT) =>
   line({
     timestamp: at,
     type: "assistant",
