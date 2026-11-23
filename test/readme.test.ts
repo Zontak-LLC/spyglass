@@ -24,12 +24,20 @@ describe("the README a stranger reads first", () => {
     "UseHourly",
     "/Users/",
     "../nightwatch",
-    "github.com/Zontak-LLC/nightwatch",
-    "github.com/Zontak-LLC/nightshift",
+    "github.com/zontak-ai/nightwatch",
+    "github.com/zontak-ai/nightshift",
     "/tmp/lens.log",
     "nohup",
   ])("does not say %s", (word) => {
     expect(README).not.toContain(word);
+  });
+
+  it("points strangers at the zontak-ai repo", () => {
+    expect(README).toContain("https://github.com/zontak-ai/spyglass");
+    const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+    expect(pkg.homepage).toBe("https://github.com/zontak-ai/spyglass#readme");
+    expect(pkg.repository.url).toBe("git+https://github.com/zontak-ai/spyglass.git");
+    expect(pkg.bugs.url).toBe("https://github.com/zontak-ai/spyglass/issues");
   });
 
   // A stale Spyglass kills itself, so the README's background setup must be a service that starts it again.
@@ -61,8 +69,8 @@ describe("the README a stranger reads first", () => {
     "lens.service",
     "lens.log",
     "Library/Logs/lens.log",
-    "github.com/Zontak-LLC/lens",
-    "Zontak-LLC/lens",
+    "github.com/zontak-ai/lens",
+    "zontak-ai/lens",
   ])("outside its notes, does not say %s", (old) => {
     expect(README_WITHOUT_NOTES).not.toContain(old);
   });

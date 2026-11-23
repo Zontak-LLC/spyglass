@@ -18,7 +18,7 @@ is made, in the same commit as the change. Rule 1 applies to every node: the rig
 
 ## Settings, command, package and service: spyglass (2026-11-22)
 
-- **Branch taken:** the command and npm package are `spyglass` (bin `spyglass`, repo URLs github.com/Zontak-LLC/spyglass),
+- **Branch taken:** the command and npm package are `spyglass` (bin `spyglass`, repo URLs github.com/zontak-ai/spyglass),
   the settings are `SPYGLASS_*` (PORT, LOGS, DATA, KEEP_DAYS, STALE_MS, WATCHDOG_MS), every log and error line starts
   with `spyglass: `, and the README's service steps use `dev.spyglass` (launchd), `spyglass.service` (systemd) and
   `~/Library/Logs/spyglass.log`.
@@ -86,7 +86,7 @@ is made, in the same commit as the change. Rule 1 applies to every node: the rig
 ## Where does the code live?
 
 - **GitHub, open source (MIT), CI on every change** (2026-10-23, the owner).
-  - **Zontak-LLC/nightshift**, public (2026-10-23, the owner): next to UseHourly and Club ADHD, same CI and Dependabot habits.
+  - **zontak-ai/nightshift**, public (2026-10-23, the owner): next to UseHourly and Club ADHD, same CI and Dependabot habits.
   - **CI: GitHub Actions only, no CircleCI** (2026-10-23): nothing to deploy (it runs on each developer's computer), no
     secrets, free for public repos. npm publishing later from GitHub Actions with trusted publishing (no stored token).
 
@@ -418,7 +418,8 @@ Forge was Day Shift; the identifiers (`store/day-shift.ts`, `DayShiftAgents`) an
 - **The owner's names (2026-10-27):** Day Shift -> Forge, Night Shift -> Lens, Night Watch -> Sentinel (Motherboard
   stays). Only words a person reads change; identifiers keep the old names. This entry and "Spyglass: the public
   name (2026-11-21)" are the only docs that hold the old-to-new mapping; `test/old-names.ts` lists the old names and the tests keep them off the screens and docs.
-- 2026-11-14: the GitHub repo is now Zontak-LLC/lens (was nightshift); the npm name, the command, ~/.nightshift and NIGHTSHIFT_* keep the old name.
+- 2026-11-14: the GitHub repo is now zontak-ai/lens (was nightshift); the npm name, the command, ~/.nightshift and NIGHTSHIFT_* keep the old name.
+- 2026-11-23: the GitHub org was renamed to zontak-ai; every link in this repo uses the new name (GitHub forwards old links only until the old name is claimed).
 - **Empty defaults.** A new install pins nothing (`projects.json` is created as `[]`, a damaged one falls back to `[]`)
   and there is no built-in Sentinel site: a project links to a site only through its line's `watchSite`. Recent repos
   under `~/Projects` and busy projects still show by themselves. The old defaults named our own projects, which a

@@ -57,7 +57,7 @@ Timeline draws a bar each, and the start page lists projects that only helpers t
 4. **A board per project (the owner's choice, 2026-10-23):** each project has its own board at its own address
    (`http://localhost:4400/<project>`); open as many as you like, side by side in their own windows or tabs. One running
    Spyglass serves them all. **Every board says plainly which project it shows:** the GitHub repo
-   (`Zontak-LLC/usehourly`, read from the project's git remote; the folder name when there is none), the folder
+   (`zontak-ai/usehourly`, read from the project's git remote; the folder name when there is none), the folder
    (`~/Projects/usehourly`) and each session's branch, in the board's header; the browser tab is titled
    "Spyglass · usehourly" so several windows can be told apart. The start page (`http://localhost:4400/`) lists the projects with something running in
    the last 10 minutes, one click to each board; quiet projects are not listed (their runs are in History).
