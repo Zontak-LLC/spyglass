@@ -12,7 +12,7 @@ A live screen for your Claude Code agents: what they are doing right now, and wh
 You need Node 22 or newer.
 
 ```bash
-git clone https://github.com/Zontak-LLC/spyglass && cd spyglass
+git clone https://github.com/zontak-ai/spyglass && cd spyglass
 npm install && npm run build
 npm start
 ```

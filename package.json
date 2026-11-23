@@ -12,13 +12,13 @@
   ],
   "author": "Denis Zontak <zontakllc@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/Zontak-LLC/spyglass#readme",
+  "homepage": "https://github.com/zontak-ai/spyglass#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Zontak-LLC/spyglass.git"
+    "url": "git+https://github.com/zontak-ai/spyglass.git"
   },
   "bugs": {
-    "url": "https://github.com/Zontak-LLC/spyglass/issues"
+    "url": "https://github.com/zontak-ai/spyglass/issues"
   },
   "type": "module",
   "engines": {
