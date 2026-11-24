@@ -12,7 +12,7 @@ export type NightServer = {
 };
 
 /** Where the boards come from (the store, wired in by the CLI). */
-export type BoardSource = {
+type BoardSource = {
   view: (project: string) => unknown;
   projects: () => unknown;
   /** Every live agent as board-kit's `Agents` part, for `GET /agents` (Motherboard's desks). */
