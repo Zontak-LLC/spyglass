@@ -9,7 +9,7 @@ type Raw = Record<string, unknown>;
 type Block = Record<string, unknown>;
 
 /** A line bigger than this is a huge tool result nobody watches; skip it rather than parse megabytes. */
-export const MAX_LINE = 2_000_000;
+const MAX_LINE = 2_000_000;
 /** Claude Code's own bookkeeping lines: nothing a person watching needs to see. */
 const QUIET = new Set([
   "attachment",

@@ -3,7 +3,7 @@
  * The raw log format belongs to Claude Code and can change; only the parser knows it.
  */
 /** `agentId` is set on steps a subagent took (a workflow's ticket agent), so its steps can be told from the main thread's. */
-export type Base = { at: string; sessionId: string; agentId?: string };
+type Base = { at: string; sessionId: string; agentId?: string };
 
 export type NightEvent =
   | (Base & { kind: "session.seen"; cwd: string; branch: string | null })

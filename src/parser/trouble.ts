@@ -6,7 +6,7 @@ import { redact } from "./redact.js";
  * connection or sleep, an expired login. Read from the structured fields first (`error`, `quotaLimits.resetsAt`), the
  * sentence only for the person reading the board. Learned from real logs on 2026-10-24 (see docs/decisions.md).
  */
-export type TroubleReason = "usage_limit" | "connection" | "login" | "api";
+type TroubleReason = "usage_limit" | "connection" | "login" | "api";
 
 type Raw = Record<string, unknown>;
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
