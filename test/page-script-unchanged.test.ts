@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CLIENT } from "../src/web/client.js";
 import { boardPage } from "../src/web/index.js";
 
-// Taken from the code before CLIENT_START and CLIENT_END dropped String.raw.
+// Pinned so that a change to the page script text is seen.
 const CLIENT_SHA256 = "ee37e16d69a7f0f74a1adfdcad7b90b25c880cdd47190be77b0b81c404236f13";
 const CLIENT_LENGTH = 16170;
 const PAGE_SHA256 = "621bd18b6c3c8612bb5ffa03e0084927f72179f62299639a4e71ea4bf4f895c7";
