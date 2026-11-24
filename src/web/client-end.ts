@@ -2,7 +2,7 @@
  * The last part of the page script (see client.ts): the header and NOW strip (with trouble in plain words),
  * the background agents, the Terminal and Timeline tabs, the clocks and the live connection. It closes the function client-start.ts opens.
  */
-export const CLIENT_END = String.raw`  // ---- the header and the NOW strip ----
+export const CLIENT_END = `  // ---- the header and the NOW strip ----
   function renderTop(view) {
     document.title = "Spyglass · " + (view.name || view.project);
     ui.title.textContent = "Spyglass · " + (view.name || view.project);
