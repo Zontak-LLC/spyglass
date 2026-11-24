@@ -1,5 +1,5 @@
 /** What the command was asked to do. Kept apart from the command itself so it can be tested without starting anything. */
-export type Command = { kind: "start" } | { kind: "help" } | { kind: "version" } | { kind: "unknown"; arg: string };
+type Command = { kind: "start" } | { kind: "help" } | { kind: "version" } | { kind: "unknown"; arg: string };
 
 export function parseArgs(args: string[]): Command {
   const [first] = args;

@@ -1,5 +1,5 @@
 /** Reads one setting by its short name (`PORT`, `LOGS`, ...): its value, or `undefined` when it is not set. */
-export type Setting = (name: string) => string | undefined;
+type Setting = (name: string) => string | undefined;
 
 /**
  * Makes a settings reader over `env`. `setting("PORT")` returns `SPYGLASS_PORT`, or the old `NIGHTSHIFT_PORT` when the

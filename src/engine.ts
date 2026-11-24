@@ -3,7 +3,7 @@ import type { NightEvent } from "./parser/index.js";
 import { Board, DAY_MS, DEFAULT_KEEP_DAYS, History } from "./store/index.js";
 import { backlogTracker, type Health, healthOf, newestChange, watchLogs } from "./watcher/index.js";
 
-export type EngineOptions = {
+type EngineOptions = {
   /** Claude Code's projects folder. */
   root: string;
   /** The SQLite file, or ":memory:". */
