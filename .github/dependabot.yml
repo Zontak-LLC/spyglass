@@ -5,6 +5,10 @@ updates:
     schedule: { interval: weekly }
     groups:
       dev-tools: { patterns: ["*"] }
+    # Majors come one at a time as planned work, never inside the weekly group.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
