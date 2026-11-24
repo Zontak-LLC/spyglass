@@ -5,11 +5,11 @@ import { isQuiet, pathsToForget } from "./forget.js";
 import { advance, committed, START, startAt, type TailState } from "./tail.js";
 
 /** Where an event came from: a key that is the same every time the same line is read, so a store can tell a repeat. */
-export type Origin = { key: string };
+type Origin = { key: string };
 /** What a file looked like when the watcher last finished with it (kept by the store, handed back after a restart). */
-export type FileMark = { ino: number; epoch: number; offset: number };
+type FileMark = { ino: number; epoch: number; offset: number };
 
-export type WatchOptions = {
+type WatchOptions = {
   /** Claude Code's projects folder (one sub-folder per project, one .jsonl log per session). */
   root: string;
   /** How often to look for new lines, in ms. Once a second keeps "Now" under the spec's 2 seconds. */

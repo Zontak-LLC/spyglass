@@ -1,7 +1,7 @@
 // Which followed files the watcher may forget, so a month of logs does not keep a month of state in memory.
 
 /** What one look found for each listed file: its facts, or null when it vanished between the listing and the look. */
-export type Listed = ReadonlyMap<string, { mtimeMs: number } | null>;
+type Listed = ReadonlyMap<string, { mtimeMs: number } | null>;
 
 /** A file last changed before `cutoffMs` is quiet; with no cutoff, nothing is. */
 export function isQuiet(mtimeMs: number, cutoffMs: number | undefined): boolean {
