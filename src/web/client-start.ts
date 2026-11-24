@@ -2,7 +2,7 @@
  * The first part of the page script (see client.ts): helpers, the start page and the frame of a project's board
  * (header, NOW strip, tabs, the three panels). It opens the function client-end.ts closes.
  */
-export const CLIENT_START = String.raw`
+export const CLIENT_START = `
 (function () {
   "use strict";
   var TABS = [["board", "Board"], ["terminal", "Terminal"], ["timeline", "Timeline"]];
