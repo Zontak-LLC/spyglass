@@ -3,10 +3,10 @@
 import { statSync } from "node:fs";
 
 /** One followed log as it was last checked: where the watcher's read got to, and since when bytes wait past it. */
-export type BacklogEntry = { offset: number; sinceMs: number | null };
+type BacklogEntry = { offset: number; sinceMs: number | null };
 export type Backlog = ReadonlyMap<string, BacklogEntry>;
 /** One followed log right now: its read place, and its size (null when it is gone). */
-export type BacklogLook = { path: string; offset: number; size: number | null };
+type BacklogLook = { path: string; offset: number; size: number | null };
 
 /**
  * The pure step: the previous state, what each log looks like now, and the time -> the next state. A log with
@@ -37,7 +37,7 @@ export function oldestUnread(state: Backlog): { path: string; sinceMs: number } 
   return oldest;
 }
 
-export type BacklogTracker = {
+type BacklogTracker = {
   /** The watcher looked at `path` and its read place is `offset` (bytes read, a half-written line included). */
   place: (path: string, offset: number) => void;
   /** Sizes now (sync stats, so a stuck read cannot hang it) -> the log waiting longest, or null. */

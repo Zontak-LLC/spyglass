@@ -17,7 +17,7 @@ export type Health = {
   unreadSince: string | null;
 };
 
-export type HealthInput = {
+type HealthInput = {
   lastLineMs: number | null;
   newestChangeMs: number | null;
   /** The oldest `sinceMs` from the backlog tracker, or null when nothing waits to be read. */
