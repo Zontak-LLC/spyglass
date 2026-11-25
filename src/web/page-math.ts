@@ -4,8 +4,8 @@
  * script), so the page runs exactly the tested code. That is why each one stands alone: no imports, no module values,
  * no calls to anything outside the list in `PAGE_MATH`.
  */
-export type Bar = { num: number; label: string; kind: string; left: number; width: number; first: boolean };
-export type HourRow = { at: number; bars: Bar[]; nowAt: number | null };
+type Bar = { num: number; label: string; kind: string; left: number; width: number; first: boolean };
+type HourRow = { at: number; bars: Bar[]; nowAt: number | null };
 
 /** "1h 05m", "7m 12s", or "–" when there is nothing to say. */
 export function durationText(ms: number | null): string {
@@ -16,7 +16,7 @@ export function durationText(ms: number | null): string {
   return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m ${String(s % 60).padStart(2, "0")}s`;
 }
 
-export type PageAgent = { name: string; active: boolean; startedAt: string | null; lastAt: string };
+type PageAgent = { name: string; active: boolean; startedAt: string | null; lastAt: string };
 
 /** "3 agents working", "1 agent working", or "" when none is active. */
 export function agentsWorking(agents: PageAgent[]): string {
