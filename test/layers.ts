@@ -4,7 +4,7 @@ import { dirname, posix } from "node:path";
  * The layer rule (SPEC section 7): watcher -> parser -> store -> server -> web, each layer importing only those listed.
  * A pure function over { path, text } so test/architecture.test.ts can feed it real files AND deliberately bad ones.
  */
-export const LAYERS: Record<string, string[]> = {
+const LAYERS: Record<string, string[]> = {
   parser: [],
   watcher: ["parser"],
   store: ["parser"],
@@ -19,7 +19,7 @@ const PURE_LAYERS = new Set(["parser", "web"]);
 const SPECIFIER = /(?:\bfrom\s+|\bimport\s*\(?\s*|\brequire\(\s*)["']([^"']+)["']/g;
 
 /** Every import in a file, with comments removed so a word in a comment is never read as an import. */
-export function importsOf(text: string): string[] {
+function importsOf(text: string): string[] {
   const code = text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
   return [...code.matchAll(SPECIFIER)].map((m) => m[1] ?? "");
 }

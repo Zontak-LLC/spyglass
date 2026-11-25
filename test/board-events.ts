@@ -40,7 +40,7 @@ export const usage = (who: Who, messageId: string, output = 5): NightEvent => ({
   cacheReadTokens: 10,
   cacheWriteTokens: 100,
 });
-export const ended = (who: Who): NightEvent => ({ kind: "turn.end", ...base(who) });
+const ended = (who: Who): NightEvent => ({ kind: "turn.end", ...base(who) });
 
 /**
  * One day's work in one repository: a main session with a title, two steps (one also in `/work/shared`) and two
