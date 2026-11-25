@@ -9,7 +9,7 @@ export type Trouble = {
 };
 /** One thing stopped, for the message line: who, why, since when, and when a usage limit resets. */
 export type Alert = Trouble & { who: string };
-export type TroubleEvent = Extract<NightEvent, { kind: "session.trouble" }>;
+type TroubleEvent = Extract<NightEvent, { kind: "session.trouble" }>;
 
 export const troubleFrom = (e: TroubleEvent): Trouble => ({
   reason: e.reason,

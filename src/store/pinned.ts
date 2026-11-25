@@ -11,7 +11,7 @@ export type Pinned = { path: string; name: string; hide?: boolean };
 export type Tile = ProjectRow & { name: string; active: boolean; pinned: boolean };
 
 /** A repository next to the pinned ones is added by itself when Claude worked in it this recently. */
-export const AUTO_DAYS = 30;
+const AUTO_DAYS = 30;
 /** A project with a step this recently counts as busy even when no agent is running. */
 const BUSY_MS = 10 * 60_000;
 

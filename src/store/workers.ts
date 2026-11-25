@@ -21,7 +21,7 @@ export type AgentRow = {
   parent: string;
 };
 type Vote = { n: number; worktree: boolean };
-export type Worker = {
+type Worker = {
   agentId: string;
   parent: string;
   cwd: string;
@@ -35,7 +35,7 @@ export type Worker = {
   ended: boolean;
   votes: Map<string, Vote>;
 };
-export type Place = { project: string; folder: string; worktree: boolean };
+type Place = { project: string; folder: string; worktree: boolean };
 
 /** An agent quiet for this long is no longer "working" (the log has no end marker when a run is cut off). */
 export const QUIET_MS = 10 * 60_000;
