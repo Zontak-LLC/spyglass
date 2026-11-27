@@ -6,3 +6,6 @@ coverage
 .DS_Store
 spyglass.config.json
 .nightshift/
+
+# Local state written on the server (forge-deploy-mode)
+data/
