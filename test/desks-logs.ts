@@ -12,6 +12,8 @@ const FIXTURES = join(import.meta.dirname, "fixtures", "desks");
 export const SESSION = "s-desk-1";
 export const NOW = Date.parse("2026-10-29T09:05:00.000Z");
 export const RESET = 1_893_456_000; // a fixed future reset time, in Unix seconds
+// The fixtures have fixed dates, so the default keep window would prune them once enough time passes.
+const FIXTURE_KEEP_DAYS = 3650;
 
 export const until = async (check: () => boolean, ms = 3000) => {
   const end = Date.now() + ms;
@@ -62,7 +64,7 @@ export function useDeskLogs() {
   }
 
   const start = (): Engine => {
-    engine = startEngine({ root: paths().root, dbPath: paths().db, everyMs: 40 });
+    engine = startEngine({ root: paths().root, dbPath: paths().db, everyMs: 40, keepDays: FIXTURE_KEEP_DAYS });
     return engine;
   };
 
