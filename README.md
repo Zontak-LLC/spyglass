@@ -37,7 +37,7 @@ Spyglass runs on your own computer. It has no accounts, no server and no telemet
 ## Settings
 
 `SPYGLASS_PORT` (default 4400), `SPYGLASS_LOGS` (default `~/.claude/projects`), `SPYGLASS_DATA` (where the
-history is kept, default `~/.nightshift`) and `SPYGLASS_KEEP_DAYS` (default 30). `SPYGLASS_STALE_MS` (default 1800000, 30 minutes:
+history is kept, default `~/.nightshift`) and `SPYGLASS_KEEP_DAYS` (default 30, 1 to 3650; anything else means 30, with a warning). `SPYGLASS_STALE_MS` (default 1800000, 30 minutes:
 how long a log's bytes may wait unread before Spyglass counts as stale and restarts) and `SPYGLASS_WATCHDOG_MS` (default
 60000: how often it checks) exist mostly for tests; anything that is not a positive whole number means the default.
 

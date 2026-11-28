@@ -162,8 +162,12 @@ export class History {
   /**
    * Forgets sessions whose newest event is older than `keepDays` (a session goes whole, so a long one is never cut in
    * the middle) and the marks of files not read for that long. Returns how many events went.
+   * @throws when `keepDays` is not a finite number above 0: the cutoff would lie in the future and wipe everything.
    */
   prune(keepDays = DEFAULT_KEEP_DAYS, nowMs = Date.now()): number {
+    if (!Number.isFinite(keepDays) || keepDays <= 0) {
+      throw new Error(`prune: keepDays must be a finite number above 0, got ${keepDays}`);
+    }
     const cutoff = nowMs - keepDays * DAY_MS;
     const gone = this.db
       .prepare(

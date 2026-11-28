@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { readSettings } from "../src/settings.js";
+import { keepDaysOf, readSettings } from "../src/settings.js";
 import { freePort } from "./free-port.js";
 
 /** A reader over `env` plus every warning it gave. */
@@ -86,4 +86,22 @@ describe("a developer upgrades with settings under the old NIGHTSHIFT_ names", (
       rmSync(home, { recursive: true, force: true });
     }
   }, 30_000);
+});
+
+// Scenario: a developer sets how many days of history to keep, and makes a typo.
+describe("a developer sets SPYGLASS_KEEP_DAYS", () => {
+  it("accepts whole days from 1 to 3650 and says nothing when unset", () => {
+    expect(keepDaysOf("30")).toEqual({ days: 30 });
+    expect(keepDaysOf("1")).toEqual({ days: 1 });
+    expect(keepDaysOf("3650")).toEqual({ days: 3650 });
+    expect(keepDaysOf(undefined)).toEqual({ days: 30 });
+    expect(keepDaysOf("")).toEqual({ days: 30 });
+  });
+
+  it.each(["-30", "0", "abc", "99999", "1.5", "Infinity"])("uses 30 and names the bad value %s", (text) => {
+    const { days, reason } = keepDaysOf(text);
+    expect(days).toBe(30);
+    expect(reason).toContain(`"${text}"`);
+    expect(reason).toContain("using 30");
+  });
 });

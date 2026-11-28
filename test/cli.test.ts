@@ -93,6 +93,43 @@ describe("a developer runs spyglass for the first time", () => {
     }
   }, 30_000);
 
+  it("starts with 30 days and one warning when SPYGLASS_KEEP_DAYS is a typo like -30", async () => {
+    const home = mkdtempSync(join(tmpdir(), "lens-cli-"));
+    const port = await freePort();
+    const child = spawn(process.execPath, ["--import", "tsx", "src/cli.ts"], {
+      env: {
+        ...process.env,
+        HOME: home,
+        SPYGLASS_LOGS: join(home, "logs"),
+        SPYGLASS_DATA: join(home, "data"),
+        SPYGLASS_PORT: String(port),
+        SPYGLASS_KEEP_DAYS: "-30",
+      },
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (d: Buffer) => {
+      stdout += d.toString();
+    });
+    child.stderr.on("data", (d: Buffer) => {
+      stderr += d.toString();
+    });
+    try {
+      const end = Date.now() + 15_000;
+      while (!stdout.includes("Desks:") && Date.now() < end) await new Promise((r) => setTimeout(r, 50));
+      expect(stdout).toContain("(30 days)");
+      await new Promise((r) => setTimeout(r, 300)); // time for a late warning to show
+      const lines = stderr.split("\n").filter((l) => l.startsWith("spyglass:"));
+      expect(lines).toHaveLength(1);
+      expect(lines[0]).toContain("-30");
+    } finally {
+      const exited = new Promise((r) => child.once("exit", r));
+      child.kill("SIGTERM");
+      await exited;
+      rmSync(home, { recursive: true, force: true });
+    }
+  }, 30_000);
+
   it("says Spyglass, what it watches and where the board is when it starts", () => {
     const text = startBanner({
       version: "1.2.3",

@@ -1,3 +1,8 @@
+import { DEFAULT_KEEP_DAYS } from "./store/index.js";
+
+const MIN_KEEP_DAYS = 1;
+const MAX_KEEP_DAYS = 3650;
+
 /** Reads one setting by its short name (`PORT`, `LOGS`, ...): its value, or `undefined` when it is not set. */
 type Setting = (name: string) => string | undefined;
 
@@ -19,5 +24,20 @@ export function readSettings(env: NodeJS.ProcessEnv, warn: (message: string) => 
       warn(`NIGHTSHIFT_${name} is the old name; use SPYGLASS_${name}`);
     }
     return old;
+  };
+}
+
+/**
+ * How many days of history to keep, from the text of `SPYGLASS_KEEP_DAYS`: a whole number from 1 to 3650. Unset or
+ * empty text gives the default with no reason; anything else out of range gives the default and a `reason` naming
+ * the value, for one warning line. Never throws.
+ */
+export function keepDaysOf(text: string | undefined): { days: number; reason?: string } {
+  if (!text) return { days: DEFAULT_KEEP_DAYS };
+  const days = Number(text);
+  if (Number.isSafeInteger(days) && days >= MIN_KEEP_DAYS && days <= MAX_KEEP_DAYS) return { days };
+  return {
+    days: DEFAULT_KEEP_DAYS,
+    reason: `SPYGLASS_KEEP_DAYS "${text}" is not a whole number of days from ${MIN_KEEP_DAYS} to ${MAX_KEEP_DAYS}; using ${DEFAULT_KEEP_DAYS}`,
   };
 }
