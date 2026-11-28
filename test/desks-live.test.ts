@@ -1,6 +1,7 @@
 import { appendFileSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { DAY_MS } from "../src/store/index.js";
 import { deskById, deskOf, NOW, RESET, SESSION, until, useDeskLogs } from "./desks-logs.js";
 
 // Motherboard's Desks (issue 15), as the logs change: tokens counted once, and who waits for the owner.
@@ -8,15 +9,33 @@ const logs = useDeskLogs();
 const STOPPED = `usage_limit, resets ${new Date(RESET * 1000).toISOString()}`;
 
 describe("a desk's tokens stay true when logs are read again", () => {
+  const totals = async () => {
+    const { board } = await logs.open();
+    return (board.desks(NOW).list ?? []).map((d) => [d.id, board.deskTokens(d.id)?.total]);
+  };
+
   it("counts the same tokens after a restart (the history replays them once, not twice)", async () => {
-    const totals = async () => {
-      const { board } = await logs.open();
-      return (board.desks(NOW).list ?? []).map((d) => [d.id, board.deskTokens(d.id)?.total]);
-    };
     const first = await totals();
     logs.stop();
     expect(await totals()).toEqual(first);
     expect(first).toContainEqual([`main:${SESSION}`, 4108]);
+  });
+
+  it("counts the same tokens after a restart a year later", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(Date.now() + 365 * DAY_MS);
+      // The logs were written a moment ago in real time; touch them so the watcher does not see them as quiet.
+      const touched = new Date();
+      for (const path of [logs.paths().session, join(logs.paths().subagents, "agent-bg1.jsonl")])
+        utimesSync(path, touched, touched);
+      const first = await totals();
+      logs.stop();
+      expect(await totals()).toEqual(first);
+      expect(first).toContainEqual([`main:${SESSION}`, 4108]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("counts every message once when a cut-short log is read again from the top", async () => {
