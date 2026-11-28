@@ -6,8 +6,8 @@ import { basename, join } from "node:path";
 import { startEngine } from "./engine.js";
 import type { NightEvent } from "./parser/index.js";
 import { startServer } from "./server/index.js";
-import { readSettings } from "./settings.js";
-import { DEFAULT_KEEP_DAYS, expand, loadPinned, projectTiles, repoOf } from "./store/index.js";
+import { keepDaysOf, readSettings } from "./settings.js";
+import { expand, loadPinned, projectTiles, repoOf } from "./store/index.js";
 import { terminalPrinter } from "./terminal.js";
 import { parseArgs, startBanner, usage } from "./usage.js";
 import { STALE_MS, WATCHDOG_EVERY_MS, watchdog } from "./watcher/index.js";
@@ -30,7 +30,8 @@ function hideHome(path: string): string {
 async function start(): Promise<void> {
   const root = setting("LOGS") || join(homedir(), ".claude", "projects");
   const dataDir = setting("DATA") || join(homedir(), ".nightshift");
-  const keepDays = Number(setting("KEEP_DAYS")) || DEFAULT_KEEP_DAYS;
+  const { days: keepDays, reason } = keepDaysOf(setting("KEEP_DAYS"));
+  if (reason) console.error(`spyglass: ${reason}`);
   let publish: (event: NightEvent) => void = () => {};
   const print = terminalPrinter((id) => engine.board.agentLabel(id));
   const engine = startEngine({

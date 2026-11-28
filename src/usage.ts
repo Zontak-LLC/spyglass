@@ -20,7 +20,7 @@ export function usage(version: string): string {
     "  spyglass -h, --help         show this help",
     "",
     "Settings: SPYGLASS_PORT (default 4400), SPYGLASS_LOGS (default ~/.claude/projects),",
-    "SPYGLASS_DATA (where the history is kept, default ~/.nightshift), SPYGLASS_KEEP_DAYS (default 30).",
+    "SPYGLASS_DATA (where the history is kept, default ~/.nightshift), SPYGLASS_KEEP_DAYS (default 30, 1 to 3650).",
     "",
     "Spyglass only reads Claude Code's log files. Nothing leaves your computer.",
   ].join("\n");

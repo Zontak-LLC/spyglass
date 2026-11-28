@@ -170,6 +170,23 @@ describe("a developer restarts Spyglass", () => {
     expect(history.file("/f")).toBeNull(); // updated at 100, not 900: it was not read since
   });
 
+  it("refuses a keepDays that is not a finite number above 0, and deletes nothing", () => {
+    const history = new History(":memory:");
+    const now = Date.parse("2026-10-24T00:00:00Z");
+    const seen = (sessionId: string) =>
+      ({ kind: "session.seen", at: new Date(now - 1000).toISOString(), sessionId, cwd: "/w/a", branch: null }) as const;
+    history.add(seen("a"), "k1");
+    history.add(seen("b"), "k2");
+    history.saveFile("/logs/a.jsonl", { ino: 1, epoch: 0, offset: 10 }, now - 1000);
+    history.saveFile("/logs/b.jsonl", { ino: 2, epoch: 0, offset: 20 }, now - 1000);
+    for (const bad of [-30, 0, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => history.prune(bad, now)).toThrow("keepDays must be a finite number above 0");
+      expect(history.count()).toBe(2);
+      expect(history.file("/logs/a.jsonl")).toEqual({ ino: 1, epoch: 0, offset: 10 });
+      expect(history.file("/logs/b.jsonl")).toEqual({ ino: 2, epoch: 0, offset: 20 });
+    }
+  });
+
   it("runs without a history when the database cannot be opened, and says so", () => {
     const { root } = setup();
     const errors: unknown[] = [];
