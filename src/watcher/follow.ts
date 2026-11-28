@@ -18,10 +18,11 @@ type WatchOptions = {
   recentMs?: number;
   /** A file bigger than this, when first seen, is read from its last `tailBytes` only (old history is not "now"). */
   tailBytes?: number;
+  /** A throw here is reported, and that read is not saved: the same lines (same keys) come again on the next look. */
   onEvent: (event: NightEvent, origin: Origin) => void;
   /** Where a file got to last time: carry on from there (same file, not shorter) instead of guessing from its age. */
   resume?: (path: string) => FileMark | null;
-  /** A file was read up to `offset` (the end of its last whole line): remember it. Called after its events. */
+  /** A file was read up to `offset` (the end of its last whole line): remember it. Called after its events, and not when one of them threw. */
   onRead?: (path: string, mark: FileMark) => void;
   onSkipped?: (count: number) => void;
   /** A log was looked at and its read place is `offset` (bytes read, a half-written line too; a failed read too). */
@@ -48,6 +49,8 @@ type Read = {
   lines: string[];
   ends: number[];
   mark: FileMark | null;
+  /** Where the read started, to go back to when an event was not taken. */
+  from: TailState;
 };
 
 /** The bytes from `from` to `to`; fewer when the file shrank meanwhile (never zero padding). Sync, so a read always
@@ -126,15 +129,19 @@ export function watchLogs(opts: WatchOptions): () => void {
   }
 
   /** One failing listener must not lose the rest of the lines. */
-  function safely(call: () => void): void {
+  function safely(call: () => void): boolean {
     try {
       call();
+      return false;
     } catch (error) {
       onError?.(error);
+      return true;
     }
   }
 
-  function emit(read: Read): void {
+  /** Delivers the events of a read; true when any `onEvent` call threw. */
+  function emit(read: Read): boolean {
+    let failed = false;
     let skipped = 0;
     const at = `${read.path}#${read.ino}.${read.epoch}`;
     read.lines.forEach((line, i) => {
@@ -142,9 +149,10 @@ export function watchLogs(opts: WatchOptions): () => void {
       const key = (n: number) => ({ key: `${at}@${read.ends[i]}.${n}` });
       const r = parseLine(line);
       skipped += r.skipped;
-      for (const [n, e] of r.events.entries()) safely(() => onEvent(e, key(n)));
+      for (const [n, e] of r.events.entries()) failed = safely(() => onEvent(e, key(n))) || failed;
     });
     if (skipped && onSkipped) onSkipped(skipped);
+    return failed;
   }
 
   /** What was remembered about a file before this run, if it is still the same file and has not shrunk. */
@@ -189,7 +197,7 @@ export function watchLogs(opts: WatchOptions): () => void {
     files.set(path, { tail: step.state, ino: info.ino, epoch });
     safely(() => onPlace?.(path, step.state.offset));
     const mark = step.state.skipping ? null : { ino: info.ino, epoch, offset: committed(step.state) };
-    return { path, ino: info.ino, epoch, lines: step.lines, ends: step.ends, mark };
+    return { path, ino: info.ino, epoch, lines: step.lines, ends: step.ends, mark, from: tail };
   }
 
   /** An agent's description, read once per change of the file (a half-written one is retried on the next look). */
@@ -213,7 +221,12 @@ export function watchLogs(opts: WatchOptions): () => void {
     const read = newLines(file, info);
     if (!read) return;
     if (read.lines.length) safely(() => onLines?.(read.lines.length));
-    emit(read);
+    if (emit(read) && !stopped) {
+      // Back to where this read started, so the next look reads the same lines again.
+      files.set(read.path, { tail: read.from, ino: read.ino, epoch: read.epoch });
+      safely(() => onPlace?.(read.path, read.from.offset));
+      return;
+    }
     const mark = read.mark;
     if (mark && !stopped) safely(() => onRead?.(read.path, mark));
   }

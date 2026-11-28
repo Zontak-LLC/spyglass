@@ -195,8 +195,36 @@ describe("a developer runs Claude Code while Spyglass watches", () => {
       },
       onError: (e) => errors.push(e),
     });
-    expect(await until(() => seen.length === 2)).toBe(true);
+    expect(await until(() => seen.length >= 3)).toBe(true);
+    expect(seen.slice(0, 3)).toEqual(["Editing a.ts", "Editing b.ts", "Editing a.ts"]);
     expect(errors).toHaveLength(1);
+  });
+
+  it("does not save the read mark after a throwing listener, and reads the same lines again", async () => {
+    dir = mkdtempSync(join(tmpdir(), "spyglass-"));
+    mkdirSync(join(dir, "demo-app"));
+    const log = join(dir, "demo-app", "s1.jsonl");
+    writeFileSync(log, toolUse("t1", "a.ts") + toolUse("t2", "b.ts"));
+    const keys: string[] = [];
+    const marks: number[] = [];
+    let thrown = false;
+    stop = watchLogs({
+      root: dir,
+      everyMs: 50,
+      onEvent: (e, origin) => {
+        if (e.kind !== "tool.use") return;
+        keys.push(`${e.summary}|${origin.key}`);
+        if (!thrown) {
+          thrown = true;
+          throw new Error("write failed");
+        }
+      },
+      onRead: (_path, mark) => marks.push(mark.offset),
+    });
+    expect(await until(() => marks.length > 0)).toBe(true);
+    expect(keys).toHaveLength(4);
+    expect(keys.slice(0, 2)).toEqual(keys.slice(2));
+    expect(marks[0]).toBe(statSync(log).size);
   });
 
   it("leaves a workflow run alone (Forge shows pipelines), and follows the background agent next to it", async () => {
